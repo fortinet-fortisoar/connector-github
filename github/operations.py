@@ -1,7 +1,7 @@
 """
 Copyright start
 MIT License
-Copyright (c) 2025 Fortinet Inc
+Copyright (c) 2026 Fortinet Inc
 Copyright end
 """
 
@@ -16,6 +16,7 @@ from collections import namedtuple
 from github import Github
 from github import InputGitTreeElement
 import shutil
+import tempfile
 from .constants import CLONE_ACCEPT_HEADER, CLONE_URL
 from base64 import b64encode
 from datetime import datetime
@@ -402,27 +403,37 @@ def update_clone_repository(config, params, *args, **kwargs):
         response = unzip_protected_file(type='File IRI', file_iri=params.get('file_iri'), env=env)
         path = response['filenames'][0].split('/')
         root_src_dir = '/tmp/{0}/{1}/'.format(path[2], path[3])
-        root_dst_dir = params.get('clone_path') + '/'
+        root_dst_dir = os.path.abspath(params.get('clone_path'))
         files_from_zip = set()
+        root_src_dir = os.path.abspath(root_src_dir)
         for src_dir, dirs, files in os.walk(root_src_dir):
-            dst_dir = src_dir.replace(root_src_dir, root_dst_dir, 1)
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir)
+            relative_dir = os.path.relpath(src_dir, root_src_dir)
+            if relative_dir == '.':
+                dst_dir = root_dst_dir
+            else:
+                dst_dir = os.path.join(root_dst_dir, relative_dir)
+            os.makedirs(dst_dir, exist_ok=True)
             for file_ in files:
                 src_file = os.path.join(src_dir, file_)
                 dst_file = os.path.join(dst_dir, file_)
-                files_from_zip.add(dst_file)
+                files_from_zip.add(os.path.abspath(dst_file))
                 if os.path.exists(dst_file):
-                    # in case of the src and dst are the same file
-                    if os.path.samefile(src_file, dst_file):
-                        continue
-                    os.remove(dst_file)
-                shutil.move(src_file, dst_dir)
-
-        # Delete files in the cloned folder that are not present in the zip
-        for root, _, files in os.walk(root_dst_dir):
+                    try:
+                        if os.path.samefile(src_file, dst_file):
+                            continue
+                    except OSError:
+                        pass
+                fd, temp_file = tempfile.mkstemp(prefix='.__tmp_', dir=dst_dir)
+                try:
+                    os.close(fd)
+                    shutil.copy2(src_file, temp_file)
+                    os.replace(temp_file, dst_file)
+                finally:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+        for root, dirs, files in os.walk(root_dst_dir):
             for file_ in files:
-                file_path = os.path.join(root, file_)
+                file_path = os.path.abspath(os.path.join(root, file_))
                 if file_path not in files_from_zip:
                     os.remove(file_path)
         return {'status': 'finish'}
@@ -443,7 +454,7 @@ def push_repository(config, params, *args, **kwargs):
         repo = g.get_user().get_repo(params.get('name'))
 
     # Parameters
-    root_path = params.get('clone_path')
+    root_path = os.path.abspath(params.get('clone_path'))
     branch = params.get('branch', 'main')
     commit_message = params.get('commit_message', 'Update files')
     commit_description = params.pop('commit_description', '')
@@ -452,12 +463,15 @@ def push_repository(config, params, *args, **kwargs):
 
     # Get current commit/tree
     try:
-        master_ref = repo.get_git_ref(f'heads/{branch}')
+        master_ref = repo.get_git_ref('heads/{}'.format(branch))
     except Exception as e:
-        raise ConnectorError(f"Failed to fetch branch '{branch}': {e}")
+        raise ConnectorError("Failed to fetch branch '{}': {}".format(branch, e))
     
     master_sha = master_ref.object.sha
-    base_tree = repo.get_git_tree(master_sha, recursive=True)
+    try:
+        base_tree = repo.get_git_tree(master_sha, recursive=True)
+    except Exception as e:
+        raise ConnectorError("Failed to fetch repository tree: {}".format(e))
 
     # Get all remote files
     def get_all_files_from_tree(tree):
@@ -470,40 +484,62 @@ def push_repository(config, params, *args, **kwargs):
     remote_files = get_all_files_from_tree(base_tree)
     remote_paths = set(remote_files.keys())
 
-    # Collect and read local files
+    # Collect local files
     element_list = []
     local_paths = set()
 
     try:
         for root, dirs, files in os.walk(root_path):
-            for f in files:
-                full_path = os.path.join(root, f)
+            # Do not process .git directories
+            dirs[:] = [
+                d for d in dirs
+                if d != '.git'
+            ]
+            for file_name in files:
 
-                # Skip ignored files
-                if any(skip in full_path for skip in ['.DS_Store', '.git']):
+                # Skip unwanted files
+                if file_name == '.DS_Store':
                     continue
-
-                # Relative path from root directory
+                full_path = os.path.join(root, file_name)
+                # Relative path used by Git
                 rel_path = os.path.relpath(full_path, root_path)
+                # Git uses forward slashes
+                rel_path = rel_path.replace(os.sep, '/')
                 local_paths.add(rel_path)
 
-                # Read file content
-                if rel_path.endswith('.png'):  # or any other binary extension
+                # Read binary files as bytes and create a Git blob using base64 encoding.
+                if file_name.lower().endswith((
+                    '.zip',
+                    '.tgz',
+                    '.tar.gz',
+                    '.gz',
+                    '.png',
+                    '.jpg',
+                    '.jpeg',
+                    '.gif',
+                    '.pdf',
+                    '.bin',
+                    '.7z',
+                    '.rar',
+                    '.exe',
+                    '.so',
+                    '.dll'
+                )):
                     with open(full_path, 'rb') as input_file:
-                        data = b64encode(input_file.read()).decode()
+                        binary_data = input_file.read()
+                    encoded_data = base64.b64encode(binary_data).decode('ascii')
+                    blob = repo.create_git_blob(encoded_data, 'base64')
+                    element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', sha=blob.sha)
                 else:
-                    with open(full_path, 'r', encoding='utf-8', errors='ignore') as input_file:
+                    with open(full_path, 'r', encoding='utf-8') as input_file:
                         data = input_file.read()
 
-                element = InputGitTreeElement(
-                    path=rel_path,
-                    mode='100644',
-                    type='blob',
-                    content=data
-                )
+                    element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', content=data)
                 element_list.append(element)
     except Exception as err:
-        raise ConnectorError(f"Error reading files: {err}")
+        raise ConnectorError(
+            "Error reading files: {}".format(err)
+        )
 
     # Detect deleted files
     files_to_delete = remote_paths - local_paths
@@ -515,12 +551,24 @@ def push_repository(config, params, *args, **kwargs):
     if not element_list:
         return {"status": "no changes to commit"}
 
-    # Create and commit
-    new_tree = repo.create_git_tree(element_list, base_tree)
-    parent = repo.get_git_commit(master_sha)
-    commit = repo.create_git_commit(commit_message, new_tree, [parent])
-    master_ref.edit(commit.sha)
+    # Create tree
+    try:
+        new_tree = repo.create_git_tree(element_list, base_tree)
+    except Exception as e:
+        raise ConnectorError("Failed to create Git tree: {}".format(e))
 
+    # Create commit
+    try:
+        parent = repo.get_git_commit(master_sha)
+        commit = repo.create_git_commit(commit_message, new_tree, [parent])
+    except Exception as e:
+        raise ConnectorError("Failed to create Git commit: {}".format(e))
+
+    # Update branch
+    try:
+        master_ref.edit(commit.sha)
+    except Exception as e:
+        raise ConnectorError("Failed to update branch '{}': {}".format(branch, e))
     return {
         "status": "finished",
         "commit_sha": commit.sha,

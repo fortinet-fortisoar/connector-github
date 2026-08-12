@@ -3,7 +3,7 @@
   "data": [
     {
       "@type": "WorkflowCollection",
-      "name": "Sample - GitHub - 2.1.0",
+      "name": "Sample - GitHub - 2.2.0",
       "description": "Sample playbooks for \"GitHub\" connector. If you are planning to use any of the sample playbooks in your environment, ensure that you clone those playbooks and move them to a different collection, since the sample playbook collection gets deleted during connector upgrade and delete.",
       "visible": true,
       "image": null,
@@ -46,7 +46,7 @@
                   "private": false,
                   "include_all_branches": false
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_repository_using_template",
                 "operationTitle": "Create Repository Using Template",
@@ -156,7 +156,7 @@
                   "has_projects": true,
                   "other_fields": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_repository",
                 "ignore_errors": true,
@@ -246,7 +246,7 @@
                 "name": "GitHub",
                 "config": "{{vars.input.params['connector_config_id']}}",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_web_url",
                 "operationTitle": "Get Server URL",
@@ -360,7 +360,7 @@
                   "file_iri": "{{vars.input.params['update_remote_repo_params']['fsr_file_iri']}}",
                   "clone_path": "{{vars.input.params['update_remote_repo_params']['clone_repo_path']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "update_clone_repository",
                 "operationTitle": "Update Remote Repository",
@@ -431,7 +431,7 @@
                 "params": {
                   "affiliation": "All"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_repository_collaborator",
                 "operationTitle": "List Repository Collaborator",
@@ -533,7 +533,7 @@
                   "message": "",
                   "repo_type": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "delete_file_from_repository",
                 "operationTitle": "Delete File"
@@ -627,7 +627,7 @@
                   "repo_type": "Organization",
                   "pull_number": "{{vars.input.params['add_pr_review_params']['pull_number']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_pr_review",
                 "operationTitle": "Add Pull Request Review",
@@ -717,7 +717,7 @@
                   "ignored": false,
                   "subscribed": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "set_repo_subscription",
                 "operationTitle": "Set Repository Subscription",
@@ -823,7 +823,7 @@
                   "commit_message": "{{vars.input.params['push_changes_params']['commit_message']}}",
                   "commit_description": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "push_repository",
                 "operationTitle": "Push Changes",
@@ -925,7 +925,7 @@
                   "repo_type": "Organization",
                   "pull_number": "{{vars.input.params['list_pr_params']['pull_number']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_pull_request",
                 "operationTitle": "List Pull Request",
@@ -1048,7 +1048,7 @@
                   "per_page": "",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_commit",
                 "operationTitle": "Get Commit",
@@ -1135,7 +1135,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_watchers",
                 "operationTitle": "List Watchers",
@@ -1237,7 +1237,7 @@
                   "repo": "{{vars.input.params['get_repo_params']['repo_name']}}",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_repository",
                 "operationTitle": "Get Repository",
@@ -1333,7 +1333,7 @@
                   "clone_zip": "{{vars.input.params['clone_repo_params']['clone_as_zip']}}",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "clone_repository",
                 "operationTitle": "Clone Repository",
@@ -1420,7 +1420,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_issue_comment",
                 "operationTitle": "Create Issue Comment",
@@ -1515,7 +1515,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_issue",
                 "operationTitle": "Create Issue",
@@ -1610,7 +1610,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_reviewers",
                 "operationTitle": "Add Reviewers for a Pull Request",
@@ -1708,7 +1708,7 @@
                   "draft": false,
                   "maintainer_can_modify": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_pull_request",
                 "operationTitle": "Create Pull Request",
@@ -1815,7 +1815,7 @@
                   "message": "{{vars.input.params['create_update_file_content_params']['commit_message']}}",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_update_file_contents",
                 "ignore_errors": true,
@@ -1903,7 +1903,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_pr_review",
                 "operationTitle": "Add Pull Request Review",
@@ -2002,7 +2002,7 @@
                   "state": "Open",
                   "direction": "Desc"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_pull_request",
                 "operationTitle": "List Pull Request",
@@ -2097,7 +2097,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "fetch_upstream",
                 "operationTitle": "Fetch Upstream",
@@ -2207,7 +2207,7 @@
                   "repo_type": "Organization",
                   "pull_number": "{{vars.input.params['get_pr_params']['pull_number']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_pull_request",
                 "operationTitle": "List Pull Request",
@@ -2298,7 +2298,7 @@
                   "state": "Open",
                   "direction": "Desc"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_repository_issue",
                 "operationTitle": "List Repository Issue",
@@ -2427,7 +2427,7 @@
                   "issue_number": "{{vars.input.params['update_issue_params']['issue_no']}}",
                   "state_reason": "{{vars.input.params['update_issue_params']['state_reason']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "update_issue",
                 "operationTitle": "Update Issue",
@@ -2496,7 +2496,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_pr_reviews",
                 "operationTitle": "List Pull Request Reviews",
@@ -2591,7 +2591,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_branch_revision",
                 "operationTitle": "Get Branch Revision",
@@ -2690,7 +2690,7 @@
                   "type": "Owner",
                   "direction": "Desc"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_user_repositories",
                 "operationTitle": "List User Repositories",
@@ -2788,7 +2788,7 @@
                   "branch": "main",
                   "clone_zip": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "clone_repository",
                 "operationTitle": "Clone Repository",
@@ -2925,7 +2925,7 @@
                     "delete_branch_on_merge": false
                   }
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "update_repository",
                 "operationTitle": "Update Repository",
@@ -2993,7 +2993,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_branch",
                 "operationTitle": "Create Branch",
@@ -3090,7 +3090,7 @@
                 "params": {
                   "default_branch_only": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "fork_organization_repository",
                 "operationTitle": "Fork Organization Repository",
@@ -3191,7 +3191,7 @@
                   "repo_type": "",
                   "decode_content": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_file_from_repository",
                 "operationTitle": "Get File"
@@ -3278,7 +3278,7 @@
                   "type": "All",
                   "direction": "Desc"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_organization_repositories",
                 "operationTitle": "List Organization Repositories",
@@ -3375,7 +3375,7 @@
                 "params": {
                   "generate_release_notes": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_release",
                 "operationTitle": "Create Release",
@@ -3470,7 +3470,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_stargazers",
                 "operationTitle": "List Stargazers",
@@ -3567,7 +3567,7 @@
                 "params": {
                   "merge_method": "Merge"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "merge_pull_request",
                 "operationTitle": "Merge Pull Request",
@@ -3664,7 +3664,7 @@
                 "params": {
                   "permission": "Push"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_repository_collaborator",
                 "operationTitle": "Add Repository Collaborator",
@@ -3765,7 +3765,7 @@
                   "visibility": "All",
                   "affiliation": "owner,collaborator,organization_member"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_authenticated_user_repositories",
                 "operationTitle": "List Authenticated User Repositories",
@@ -3871,7 +3871,7 @@
                   "per_page": "",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "compare_commit",
                 "operationTitle": "Get Commit Comparison",
@@ -3988,7 +3988,7 @@
                   "page": 1,
                   "per_page": 30
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "search_code",
                 "operationTitle": "Search Code"
@@ -4085,7 +4085,7 @@
                   "milestone": "",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_issue",
                 "operationTitle": "Create Issue",
@@ -4183,7 +4183,7 @@
                   "permission": "Push",
                   "affiliation": "All"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_repository_collaborator",
                 "operationTitle": "List Repository Collaborator",
@@ -4270,7 +4270,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "delete_branch",
                 "operationTitle": "Delete Branch",
@@ -4365,7 +4365,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_update_file_contents",
                 "operationTitle": "Create or Update File Contents",
@@ -4462,7 +4462,7 @@
                 "params": {
                   "protected": false
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_branches",
                 "operationTitle": "List Branches",
@@ -4557,7 +4557,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_releases",
                 "operationTitle": "List Releases",
@@ -4679,7 +4679,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "update_issue",
                 "operationTitle": "Update Issue",
@@ -4747,7 +4747,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "star_repository",
                 "operationTitle": "Star Repository",
@@ -4851,7 +4851,7 @@
                   "per_page": "",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_releases",
                 "operationTitle": "List Releases",
@@ -4962,7 +4962,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "merge_branch",
                 "operationTitle": "Merge Branch",
@@ -5066,7 +5066,7 @@
                   "repo_type": "Organization",
                   "issue_number": "{{vars.input.params['add_issue_comment_params']['cr_number']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_issue_comment",
                 "operationTitle": "Create Issue Comment",
@@ -5155,7 +5155,7 @@
                 "params": {
                   "sort": "Newest"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_fork_repositories",
                 "operationTitle": "List Fork Repositories",
@@ -5260,7 +5260,7 @@
                   "pull_number": "{{vars.input.params['add_reviewers_for_pr_params']['pull_number']}}",
                   "team_reviewers": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_reviewers",
                 "operationTitle": "Add Reviewers for a Pull Request",
@@ -5359,7 +5359,7 @@
                   "target_commitish": "{{vars.input.params['create_release_params']['base_branch']}}",
                   "generate_release_notes": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_release",
                 "operationTitle": "Create Release",
@@ -5459,7 +5459,7 @@
                   "repo_type": "Organization",
                   "maintainer_can_modify": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_pull_request",
                 "ignore_errors": true,
@@ -5571,7 +5571,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "delete_repository",
                 "operationTitle": "Delete Repository",
@@ -5684,7 +5684,7 @@
                   "milestone": "",
                   "repo_type": "Organization"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_repository_issue",
                 "operationTitle": "List Repository Issue",
@@ -5805,7 +5805,7 @@
                   "is_template": false,
                   "has_projects": true
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_repository",
                 "operationTitle": "Create Repository",
@@ -5912,7 +5912,7 @@
                   "merge_method": "merge",
                   "commit_message": ""
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "merge_pull_request",
                 "operationTitle": "Merge Pull Request",
@@ -6008,7 +6008,7 @@
                   "repo_type": "Organization",
                   "permission": "Push"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "add_repository_collaborator",
                 "operationTitle": "Add Repository Collaborator",
@@ -6095,7 +6095,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "push_repository",
                 "operationTitle": "Push Changes",
@@ -6200,7 +6200,7 @@
                   "checkout_branch": "Branch Name",
                   "new_branch_name": "{{vars.input.params['create_branch_params']['new_branch']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "create_branch",
                 "ignore_errors": true,
@@ -6291,7 +6291,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "get_web_url",
                 "operationTitle": "Get Server URL",
@@ -6389,7 +6389,7 @@
                   "repo_type": "Organization",
                   "pull_number": "{{vars.input.params['list_pr_reviews_params']['pull_number']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_pr_reviews",
                 "operationTitle": "List Pull Request Reviews",
@@ -6478,7 +6478,7 @@
                 "params": {
                   "sort": "Created"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "list_review_comments",
                 "operationTitle": "List Review Comments on a Pull Request",
@@ -6600,7 +6600,7 @@
                 "name": "GitHub",
                 "config": "",
                 "params": [],
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "update_clone_repository",
                 "operationTitle": "Update Remote Repository",
@@ -6676,7 +6676,7 @@
                   "repo_type": "Organization",
                   "branch_name": "{{vars.input.params['delete_branch_params']['branch_name']}}"
                 },
-                "version": "2.1.0",
+                "version": "2.2.0",
                 "connector": "github",
                 "operation": "delete_branch",
                 "operationTitle": "Delete Branch",
