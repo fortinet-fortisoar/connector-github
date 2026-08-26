@@ -16,8 +16,9 @@ from collections import namedtuple
 from github import Github
 from github import InputGitTreeElement
 import shutil
+import hashlib
 import tempfile
-from .constants import CLONE_ACCEPT_HEADER, CLONE_URL
+from .constants import CLONE_ACCEPT_HEADER, CLONE_URL, BINARY_EXTENSIONS
 from base64 import b64encode
 from datetime import datetime
 from connectors.core.connector import get_logger, ConnectorError
@@ -457,7 +458,7 @@ def push_repository(config, params, *args, **kwargs):
     root_path = os.path.abspath(params.get('clone_path'))
     branch = params.get('branch', 'main')
     commit_message = params.get('commit_message', 'Update files')
-    commit_description = params.pop('commit_description', '')
+    commit_description = params.get('commit_description', '')
     if commit_description:
         commit_message += '\n' + commit_description
 
@@ -473,20 +474,23 @@ def push_repository(config, params, *args, **kwargs):
     except Exception as e:
         raise ConnectorError("Failed to fetch repository tree: {}".format(e))
 
-    # Get all remote files
-    def get_all_files_from_tree(tree):
-        file_paths = {}
-        for element in tree.tree:
-            if element.type == 'blob':
-                file_paths[element.path] = element.sha
-        return file_paths
+    # Get all remote files and their Git blob SHA
+    remote_files = {}
 
-    remote_files = get_all_files_from_tree(base_tree)
+    for element in base_tree.tree:
+        if element.type == 'blob':
+            remote_files[element.path] = element.sha
+
     remote_paths = set(remote_files.keys())
 
+    # Git blob SHA calculation
+    def calculate_git_blob_sha(data):
+        header = b'blob ' + str(len(data)).encode('ascii') + b'\0'
+        return hashlib.sha1(header + data).hexdigest()
     # Collect local files
     element_list = []
     local_paths = set()
+    files_added_or_updated = []
 
     try:
         for root, dirs, files in os.walk(root_path):
@@ -507,35 +511,41 @@ def push_repository(config, params, *args, **kwargs):
                 rel_path = rel_path.replace(os.sep, '/')
                 local_paths.add(rel_path)
 
-                # Read binary files as bytes and create a Git blob using base64 encoding.
-                if file_name.lower().endswith((
-                    '.zip',
-                    '.tgz',
-                    '.tar.gz',
-                    '.gz',
-                    '.png',
-                    '.jpg',
-                    '.jpeg',
-                    '.gif',
-                    '.pdf',
-                    '.bin',
-                    '.7z',
-                    '.rar',
-                    '.exe',
-                    '.so',
-                    '.dll'
-                )):
+                remote_sha = remote_files.get(rel_path)
+
+                # Binary files
+                if file_name.lower().endswith(BINARY_EXTENSIONS):
                     with open(full_path, 'rb') as input_file:
                         binary_data = input_file.read()
+                    local_sha = calculate_git_blob_sha(binary_data)
+
+                    # Skip unchanged file
+                    if remote_sha == local_sha:
+                        continue
+
+                    # Create new Git blob
                     encoded_data = base64.b64encode(binary_data).decode('ascii')
-                    blob = repo.create_git_blob(encoded_data, 'base64')
+                    try:
+                        blob = repo.create_git_blob(encoded_data, 'base64')
+                    except Exception as e:
+                        raise ConnectorError("Failed to create Git blob for '{}': {}".format(rel_path, e))
+
                     element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', sha=blob.sha)
+
+                # Text files
                 else:
                     with open(full_path, 'r', encoding='utf-8') as input_file:
                         data = input_file.read()
+                    text_bytes = data.encode('utf-8')
+                    local_sha = calculate_git_blob_sha(text_bytes)
+
+                    # Skip unchanged file
+                    if remote_sha == local_sha:
+                        continue
 
                     element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', content=data)
                 element_list.append(element)
+                files_added_or_updated.append(rel_path)
     except Exception as err:
         raise ConnectorError(
             "Error reading files: {}".format(err)
@@ -572,7 +582,7 @@ def push_repository(config, params, *args, **kwargs):
     return {
         "status": "finished",
         "commit_sha": commit.sha,
-        "files_added_or_updated": list(local_paths),
+        "files_added_or_updated": files_added_or_updated,
         "files_deleted": list(files_to_delete)
     }
 
