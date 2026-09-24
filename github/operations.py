@@ -462,13 +462,60 @@ def push_repository(config, params, *args, **kwargs):
     if commit_description:
         commit_message += '\n' + commit_description
 
-    # Get current commit/tree
+    # Helper: Calculate Git blob SHA
+    def calculate_git_blob_sha(data):
+        header = (
+            b'blob '
+            + str(len(data)).encode('ascii')
+            + b'\0'
+        )
+
+        return hashlib.sha1(
+            header + data
+        ).hexdigest()
+
+    # Helper: Detect binary file
+    def is_binary_file(file_path):
+        """
+        Detect whether a file is binary.
+
+        Detection is based on:
+        1. NULL bytes
+        2. UTF-8 decoding failure
+
+        Only the first 8192 bytes are inspected, so this
+        avoids loading the complete file just for detection.
+        """
+        try:
+            with open(file_path, 'rb') as input_file:
+                data = input_file.read(8192)
+
+            # NULL byte is a strong indication of binary data
+            if b'\x00' in data:
+                return True
+
+            # Try UTF-8 decoding
+            data.decode('utf-8')
+
+            return False
+
+        except UnicodeDecodeError:
+            return True
+
+        except Exception:
+            # If detection itself fails, let the actual
+            # file processing report the detailed error.
+            return False
+
+    # Get current branch reference
     try:
         master_ref = repo.get_git_ref('heads/{}'.format(branch))
     except Exception as e:
         raise ConnectorError("Failed to fetch branch '{}': {}".format(branch, e))
-    
+
     master_sha = master_ref.object.sha
+
+    # Get current repository tree
     try:
         base_tree = repo.get_git_tree(master_sha, recursive=True)
     except Exception as e:
@@ -483,10 +530,6 @@ def push_repository(config, params, *args, **kwargs):
 
     remote_paths = set(remote_files.keys())
 
-    # Git blob SHA calculation
-    def calculate_git_blob_sha(data):
-        header = b'blob ' + str(len(data)).encode('ascii') + b'\0'
-        return hashlib.sha1(header + data).hexdigest()
     # Collect local files
     element_list = []
     local_paths = set()
@@ -505,80 +548,152 @@ def push_repository(config, params, *args, **kwargs):
                 if file_name == '.DS_Store':
                     continue
                 full_path = os.path.join(root, file_name)
+
                 # Relative path used by Git
                 rel_path = os.path.relpath(full_path, root_path)
+
                 # Git uses forward slashes
                 rel_path = rel_path.replace(os.sep, '/')
                 local_paths.add(rel_path)
 
+                # Get remote SHA
                 remote_sha = remote_files.get(rel_path)
 
-                # Binary files
-                if file_name.lower().endswith(BINARY_EXTENSIONS):
-                    with open(full_path, 'rb') as input_file:
-                        binary_data = input_file.read()
+                # Determine whether file is binary
+                is_attachment = rel_path.startswith('records/attachments/files/')
+
+                # Known binary extensions
+                is_binary_extension = file_name.lower().endswith(BINARY_EXTENSIONS)
+
+                # Content-based binary detection
+                content_is_binary = False
+
+                if not is_attachment and not is_binary_extension:
+                    content_is_binary = is_binary_file(full_path)
+
+                is_binary = (
+                    is_attachment
+                    or is_binary_extension
+                    or content_is_binary
+                )
+
+                # Binary file processing
+                if is_binary:
+                    try:
+                        with open(full_path, 'rb') as input_file:
+                            binary_data = input_file.read()
+
+                    except Exception as e:
+                        raise ConnectorError("Failed to read binary file '{}': {}".format(rel_path, e))
+
+                    # Calculate Git blob SHA
                     local_sha = calculate_git_blob_sha(binary_data)
 
                     # Skip unchanged file
                     if remote_sha == local_sha:
                         continue
 
-                    # Create new Git blob
+                    # Encode binary data using Base64
                     encoded_data = base64.b64encode(binary_data).decode('ascii')
+
+                    # Create Git blob
                     try:
                         blob = repo.create_git_blob(encoded_data, 'base64')
+
                     except Exception as e:
                         raise ConnectorError("Failed to create Git blob for '{}': {}".format(rel_path, e))
 
-                    element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', sha=blob.sha)
+                    element = InputGitTreeElement(
+                        path=rel_path,
+                        mode='100644',
+                        type='blob',
+                        sha=blob.sha
+                    )
 
-                # Text files
+                # Text file processing
                 else:
-                    with open(full_path, 'r', encoding='utf-8') as input_file:
-                        data = input_file.read()
+
+                    try:
+                        with open(full_path, 'r', encoding='utf-8') as input_file:
+                            data = input_file.read()
+
+                    except UnicodeDecodeError as e:
+                        raise ConnectorError("File '{}' is not valid UTF-8: {}".format(rel_path,e))
+
+                    except Exception as e:
+                        raise ConnectorError(
+                            "Failed to read text file '{}': {}".format(rel_path, e))
+
                     text_bytes = data.encode('utf-8')
+
+                    # Calculate Git blob SHA
                     local_sha = calculate_git_blob_sha(text_bytes)
 
                     # Skip unchanged file
                     if remote_sha == local_sha:
                         continue
 
-                    element = InputGitTreeElement(path=rel_path, mode='100644', type='blob', content=data)
+                    element = InputGitTreeElement(
+                        path=rel_path,
+                        mode='100644',
+                        type='blob',
+                        content=data
+                    )
+
+                # Add changed/new file to tree
                 element_list.append(element)
+
                 files_added_or_updated.append(rel_path)
+
+    except ConnectorError:
+        raise
+
     except Exception as err:
-        raise ConnectorError(
-            "Error reading files: {}".format(err)
-        )
+        raise ConnectorError("Error processing files: {}".format(err))
+
 
     # Detect deleted files
-    files_to_delete = remote_paths - local_paths
+    files_to_delete = (remote_paths - local_paths)
+
     for file_path in files_to_delete:
-        element = InputGitTreeElement(path=file_path, mode='100644', type='blob', sha=None)
+
+        element = InputGitTreeElement(
+            path=file_path,
+            mode='100644',
+            type='blob',
+            sha=None
+        )
+
         element_list.append(element)
 
     # No changes safeguard
     if not element_list:
         return {"status": "no changes to commit"}
 
-    # Create tree
+    # Create Git tree
     try:
         new_tree = repo.create_git_tree(element_list, base_tree)
+
     except Exception as e:
         raise ConnectorError("Failed to create Git tree: {}".format(e))
 
-    # Create commit
+    # Create Git commit
     try:
         parent = repo.get_git_commit(master_sha)
+
         commit = repo.create_git_commit(commit_message, new_tree, [parent])
+
     except Exception as e:
         raise ConnectorError("Failed to create Git commit: {}".format(e))
 
-    # Update branch
+    # Update branch reference
     try:
         master_ref.edit(commit.sha)
+
     except Exception as e:
         raise ConnectorError("Failed to update branch '{}': {}".format(branch, e))
+
+    # Return result
     return {
         "status": "finished",
         "commit_sha": commit.sha,
