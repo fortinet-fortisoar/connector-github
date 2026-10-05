@@ -9,6 +9,7 @@ import zipfile
 from zipfile import ZipFile
 import requests
 import base64
+import re
 import json
 import os
 from django.conf import settings
@@ -779,8 +780,55 @@ def merge_pull_request(config, params, *args, **kwargs):
     payload = {k: v for k, v in params.items() if
                v is not None and v != '' and v != {} and v != [] and k not in ['owner', 'org', 'repo', 'pull_number']}
     endpoint = '{0}/pulls/{1}/merge'.format(params.get('repo'), params.get('pull_number'))
-    return github.make_request(method='PUT', data=json.dumps(payload), endpoint=endpoint, org=params.get('org'),
+    try:
+        response = github.make_request(method='PUT', data=json.dumps(payload), endpoint=endpoint, org=params.get('org'),
                                owner=params.get('owner'))
+        return response
+    except Exception as err:
+        error_message = str(err)
+        status_code = None
+        github_message = None
+        try:
+            match = re.search(
+                r"\{'status_code':\s*(\d+),\s*'message':\s*'(.+?)'\}",
+                error_message
+            )
+            if match:
+                status_code = int(match.group(1))
+                github_response = match.group(2)
+                try:
+                    github_response = json.loads(
+                        github_response
+                    )
+                except Exception:
+                    pass
+
+                if isinstance(github_response, dict):
+                    github_message = github_response.get(
+                        'message'
+                    )
+
+        except Exception:
+            pass
+        if (status_code == 405 and github_message == 'Pull Request has merge conflicts'):
+            return {
+                "status": "failed",
+                "message": (
+                    "Pull Request #{} cannot be merged. "
+                    "The PR branch contains a merge conflict."
+                ).format(
+                    params.get('pull_number')
+                ),
+                "pull_number": params.get('pull_number'),
+                "status_code": status_code,
+                "merged": False
+            }
+        raise ConnectorError(
+            "Failed to merge Pull Request #{}: {}".format(
+                params.get('pull_number'),
+                err
+            )
+        )
 
 
 def create_issue(config, params, *args, **kwargs):
